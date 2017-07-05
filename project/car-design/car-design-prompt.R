@@ -24,51 +24,70 @@
 ###############################################################################
 
 # Load elemental-data.csv and tialx-properties.csv into data frames.
-
+full=merge(elemental.data,tialx.properties,by.x=("Symbol"),by.y=("X"))
+all=TRUE
 # Merge the data frames into a single data frame.
 # Set all=TRUE to keep every value.
 
 # Add a column to the data frame containing the element toughness. 
 # You can calculate toughness by:
 # Toughness = Bulk Modulus/Shear Modulus
-
-
+toughness=(full$Bulk.Modulus/full$Shear.Modulus)
+full$toughness=toughness
 ### Part 1: Predicting Properties  ###
 
 # Write a function that predicts the property of an alloy based on the weighted
 # sum of the element properties.
 # The alloy is 50% Ti-45% Al-5% X, for a varierty of added elements X. 
+PAT=function(x){
+  z=(1.31+1.20+(.05*full[x,"toughness"]));
+  return(z);
+}
+
+PAS=function(y){
+  g=(52.6+32.5+(.05*(y)));
+  return(g);
+}
 
 # Use this function to predict the strength and toughness of the alloys.
 # Construct a data frame containing the predicted and actual values.
-
+predictedStrength=sapply(full$Bulk.Modulus,PAS)
+predictedToughness=PAT(1:27)
+actualStrength=full$Alloy.Strength
+actualToughness=full$Alloy.Toughness
+full2=data.frame(predictedStrength,actualStrength,predictedToughness,actualToughness)
 # Use this data frame to make plots comparing both sets of estimated and actual
 # property values.
-
+par(mfrow=c(1,2))
+plot(actualStrength,predictedStrength)
+plot(actualToughness,predictedToughness)
 # What do these plots indicate about alloy performance? Is it better or worse 
 # than that of pure elements?
-
+# Alloys are stronger but not tougher than pure elements
 # Remove the non-alloy data from your merged data frame.
-
+full3=data.frame(actualStrength,actualToughness)
 ### Part 2: Design  ###
 # What properties go into the design of your car? Think about what you would 
 # look for when buying a car. 
 # Safety ratings, gas mileage, and cost are often considered by consumers.
 # Are there factors beyond what was listed that you would consider?
-
+# yes
 # How do those translate to the data you have available?
 # For example, consider what happens in a car accident. 
 # Do you want a car that crumples under impact, or that is relatively unharmed 
 # by a collision?
 # Determine if you want to minimize, maximize, or take an intermediate value
 # of each property you're interested in.
-
+# high toughness, low strength, low price, 
 # Also consider the relative importance of each property. 
 # For instance, how much does cost matter compared to safety?
 # Often you find that there's a trade-off between desirable properties. 
 # You can decide which properties are very important and which are flexible, 
-# and use that to determine what material to use. 
-
+# and use that to determine what material to use.
+par(mfrow=c(1,3))
+hist(full$Price)
+hist(full$Alloy.Toughness)
+hist(full$Alloy.Strength)
 # Make histograms of the properties you're interested in to get a sense of 
 # the ranges of values.
 # Then make plots comparing the different properties.
@@ -76,10 +95,15 @@
 # narrow down the possiblities considered in subsequent plots.
 # You can use the abline() command to indicate the cut-off points on the plot,
 # and the text() command to label points.
-
+par(mfrow=c(1,2))
+plot(full$Alloy.Toughness,full$Price)
+text(full$Alloy.Toughness,full$Price,labels=full$Symbol,pos=2)
+plot(full$Alloy.Strength,full$Price)
+text(full$Alloy.Strength,full$Price,labels=full$Symbol,pos=2)
+plot(full$Alloy.Strength,full$Alloy.Toughness)
+text(full$Alloy.Strength,full$Alloy.Toughness, labels=full$Symbol,pos=2)
 # You can also use the intersect() command to take subsets of the data frame
 # under certain limits, instead of comparing points graphically.
-
 # You have some freedom in deciding what properties to compare. 
 # The goal is to find an optimal alloy to use based on the properties that you 
 # determined earlier. 
@@ -87,8 +111,6 @@
 # meets the requirements  you specified, and be able to justify your decision.
 # This does mean, however, that you should be satisfied of your previous 
 # decisions and understand why you made them.
-
-
 # What are the best one or two additional elements to use in the alloy? 
 # Explain how you made your choice, using the plots and data you generated.
 # Also explain what elements you excluded and why.
